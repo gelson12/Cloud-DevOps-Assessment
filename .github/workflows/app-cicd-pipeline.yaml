@@ -1,0 +1,88 @@
+name: Combined CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - development
+      - staging
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+
+jobs:
+  backend-build-and-test:
+    runs-on: ubuntu-latest
+    if: contains(github.event.push.changes[0].filename, 'backend/')
+    steps:
+      - uses: actions/checkout@v2
+      
+      # Conditional setup for Java
+      - name: Set up Java
+        if: endsWith(github.repository, 'java')
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+          
+      # Conditional setup for .NET
+      - name: Set up .NET
+        if: endsWith(github.repository, 'dotnet')
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      # Build for Java
+      - name: Build with Maven
+        if: endsWith(github.repository, 'java')
+        run: mvn clean install
+        
+      # Build for .NET
+      - name: Restore, test, and publish .NET
+        if: endsWith(github.repository, 'dotnet')
+        run: |
+          dotnet restore
+          dotnet test
+          dotnet publish -c Release -o out
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    needs: backend-build-and-test
+    if: contains(github.event.push.changes[0].filename, 'frontend/')
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+
+      - name: Install and build React frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+  docker-build-and-push:
+    runs-on: ubuntu-latest
+    needs: [backend-build-and-test, frontend-build]
+    steps:
+      - uses: actions/checkout@v2
+      
+      # Backend Docker image
+      - name: Build backend Docker image
+        if: contains(github.event.push.changes[0].filename, 'backend/')
+        run: docker build -t my-backend:${{ github.sha }} ./backend
+      
+      - name: Push backend Docker image
+        if: contains(github.event.push.changes[0].filename, 'backend/')
+        run: docker push my-backend:${{ github.sha }}
+
+      # Frontend Docker image
+      - name: Build frontend Docker image
+        if: contains(github.event.push.changes[0].filename, 'frontend/')
+        run: docker build -t my-frontend:${{ github.sha }} ./frontend
+      
+      - name: Push frontend Docker image
+        if: contains(github.event.push.changes[0].filename, 'frontend/')
+        run: docker push my-frontend:${{ github.sha }}

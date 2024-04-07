@@ -1,0 +1,5 @@
+For LocalStack, you'll run it as a service in your CI/CD environment or locally using Docker. Ensure LocalStack is started before running Terraform commands in your CI/CD pipeline. The provided configurations mock the AWS environment for development and testing purposes without incurring actual AWS costs. This setup emphasizes CI/CD best practices by separating backend and frontend workflows, enhancing modularity, and facilitating parallel development and deployment processes.
+
+Security Group (aws_security_group): Defines a security group for the EC2 instances allowing inbound HTTP traffic. Modify the vpc_id as per your setup.
+Elastic Load Balancer (aws_elb): Configures a basic HTTP load balancer listening on port 80 and forwards traffic to the attached EC2 instance(s). Health checks are defined to ensure traffic is only forwarded to healthy instances.
+Variables (variables.tf): Includes additional variables like subnet_id and vpc_id, which you would need to define based on your environment or LocalStack configuration.
