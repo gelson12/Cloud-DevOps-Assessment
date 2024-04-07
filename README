@@ -1,0 +1,70 @@
+To fork, configure, and deploy the "Cloud-DevOps-Assessment" solution on your own cloud environment, and to understand the overall architecture of the solution implemented, follow the instructions and descriptions below.
+
+# How to Fork and Deploy the Solution
+Forking the Repository
+1. Navigate to the GitHub Repository: Go to gelson12/Cloud-DevOps-Assessment on GitHub.
+2. Fork the Repository: Click the "Fork" button in the upper right corner of the GitHub interface to copy the repository into your GitHub account.
+## Cloning the Repository
+1. Open Terminal or Command Prompt.
+2. Clone the Repository: Execute the following command, replacing <YourUsername> with your GitHub username.
+
+
+git clone https://github.com/<YourUsername>/Cloud-DevOps-Assessment.git
+3. Navigate to the Project Directory:
+
+
+cd Cloud-DevOps-Assessment
+
+## Configuring the Project
+1. Configure AWS CLI: Ensure you have AWS CLI installed and configured with credentials that have the necessary permissions for the resources being deployed.
+
+
+
+aws configure
+2. Initialize Terraform (within the infra_required_resource directory):
+
+
+cd infra_required_resource
+terraform init
+
+## Deploying the Infrastructure
+1. Apply Terraform Configuration: Deploy your infrastructure using Terraform.
+
+terraform apply
+
+Confirm the action when prompted by entering yes.
+
+## Deploying the Application
+1. Follow the instructions within the .github/workflows for specific CI/CD pipeline configurations.
+
+# High-Level Documentation
+## Overall Architecture
+The "Cloud-DevOps-Assessment" project is designed to automate the deployment of a cloud-based application using GitHub Actions for CI/CD and Terraform for Infrastructure as Code (IaC). The solution is architected to support a Java/.NET backend and a React frontend application, focusing on AWS as the cloud service provider.
+
+## Key Components:
+
+GitHub Actions: Automates build, test, and deployment pipelines for both the application and the infrastructure. It includes workflows for:
+
+Continuous Integration (CI) of the application code.
+Continuous Delivery (CD) to build Docker images and push them to a registry.
+Infrastructure deployment to provision and manage AWS resources.
+Terraform: Manages the cloud infrastructure as code in a declarative way. The configuration includes:
+
+AWS EC2 instances for the application servers.
+AWS RDS for a managed relational database.
+AWS Elastic Load Balancing (ELB) to distribute incoming traffic.
+Networking, security, and monitoring configurations to ensure the infrastructure is secure and performant.
+LocalStack: Utilized for mocking AWS services locally, enabling development and testing without incurring AWS costs. This integration is particularly valuable in CI pipelines for preliminary testing before deployment to actual AWS environments.
+
+## Deployment Workflow:
+
+1. Code Push: Developers push code changes to the GitHub repository.
+2. CI Pipeline: GitHub Actions trigger the CI pipeline, building and testing the application.
+3. CD Pipeline: Upon successful CI, the CD pipeline builds Docker images for the backend and frontend, pushing them to AWS ECR.
+4. Infrastructure Pipeline: Parallelly or subsequently, Terraform configurations are applied, provisioning the necessary AWS resources.
+5. Application Deployment: The application is deployed onto the provisioned infrastructure, utilizing the built Docker images.
+
+## Scalability and Security:
+
+Auto-scaling configurations ensure the application can handle varying loads efficiently.
+IAM roles, security groups, and network ACLs are employed to enforce principle of least privilege and to secure application access.
