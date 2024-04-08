@@ -1,0 +1,60 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+      - development
+
+jobs:
+  terraform:
+    name: Terraform Deploy to AWS via LocalStack
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+      LOCALSTACK_ENDPOINT: http://localhost:4566
+
+    services:
+      localstack:
+        image: localstack/localstack
+        ports:
+          - 4566:4566
+        env:
+          SERVICES: ec2,rds,elasticloadbalancing
+          DEFAULT_REGION: us-east-1
+          EDGE_PORT: 4566
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.14.9
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./infra_required_resource
+
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./infra_required_resource
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan -input=false
+        working-directory: ./infra_required_resource
+
+      # This apply step can be made conditional or manual for production safety
+      - name: Terraform Apply
+        run: terraform apply -input=false tfplan
+        working-directory: ./infra_required_resource
+
+      # Mock deployment to LocalStack for testing; Remove for actual AWS deployment
+      - name: Deploy to LocalStack for Mocking
+        run: |
+          export AWS_ENDPOINT_URL=${LOCALSTACK_ENDPOINT}
+          terraform apply -auto-approve
+        working-directory: ./infra_required_resource
